@@ -1,9 +1,9 @@
 all : addmx
 
-phrases : addmx.o
+addmx : addmx.o
 	gcc -o addmx addmx.o
 
-phrases.o : addmx.c
+addmx.o : addmx.c
 	gcc -c addmx.c
 
 clean :
