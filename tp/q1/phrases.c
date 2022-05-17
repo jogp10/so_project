@@ -17,10 +17,10 @@ int main(int argc, char *argv[]) {
     int num_phrases = 0;
 
     /** Iterate through arguments options */
-    while ((opt = getopt(argc, argv, "l")) != -1) {
+    while ((opt = getopt(argc, argv, "l")) != -1) { // = -1 se l não existir  
         switch (opt) {
             case 'l':
-                puts("Activate Print Lines Mode");
+                puts("Activate Print Lines Mode"); // l de lines
                 mode = LINE_MODE;
                 break;
             default:
