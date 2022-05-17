@@ -3,12 +3,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define PHRASE_SIZE 100
-#define TEXT_SIZE 200
+#define PHRASE_SIZE 100 // tamanho da frase
+#define TEXT_SIZE 200 // no de frases
 
 int main(int argc, char *argv[]) {
     enum {
-        COUNT_MODE, LINE_MODE
+        COUNT_MODE, LINE_MODE // no de frases; print frase por frase com índice
     } mode = COUNT_MODE;
     int opt;
 
@@ -30,34 +30,34 @@ int main(int argc, char *argv[]) {
     }
 
     /** Open file */
-    int index = optind;
+    int index = optind; // optind, resultante do getopt, é igual ao índice do próximo argumento a ser iterado
     char *f = (char *) malloc(100 * sizeof(char));
-    strcpy(f, argv[index]);
-    if ((ft = fopen(f, "r")) == NULL) {
-        puts(f);
+    strcpy(f, argv[index]); // string copy de argv[index] (só o nome do ficheiro) para f
+    if ((ft = fopen(f, "r")) == NULL) { // se der erro; fopen retorna apontador para f; ft = apontador para início do ficheiro f
+        puts(f); // puts faz sempre tab
         puts("Unable to open file");
         return 1;
     }
 
     /** Get size of file */
     int sz;
-    fseek(ft, 0, SEEK_END);
-    sz = ftell(ft);
-    rewind(ft);
+    fseek(ft, 0, SEEK_END); // muda o apontador ft para o final do ficheiro (SEEK_END); 0  -> offset
+    sz = ftell(ft); // posição do apontador (índice do final do ficheiro = tamanho do ficheiro)
+    rewind(ft); // voltar ao início do ficheiro
 
 
     int phrase = 0;
     int j = 0; /* position in phrase */
     for (int i = 0; i < sz; i++) { /** Iterate through all file */
         char ch;
-        fscanf(ft, "%c", &ch);
+        fscanf(ft, "%c", &ch); // LER um caracter a cada iteração; ft ficheiro, "%c" tipo que vou ler, &ch onde vou guardar o que li
 
         if (ch == '\n') ch = ' '; /* substitute new line for space */
-        phrases[phrase][j] = ch;
+        phrases[phrase][j] = ch; 
         j++;
 
         /** End of phrase */
-        if (strchr(".!?", ch)) {
+        if (strchr(".!?", ch)) { // se encontrar ch na string ".!?"
             fscanf(ft, "%c", &ch);
             phrase++;
             j = 0;
@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
             }
             break;
         case COUNT_MODE:
-            printf("%d\n", num_phrases);
+            printf("%d\n", num_phrases); // d de dígito
             break;
     }
 
