@@ -6,6 +6,10 @@
 #define NUM_WORDS 8
 #define WORD_SIZE 20
 
+#define READ_END 0
+#define WRITE_END 1
+#define LINESIZE 10000
+
 char (*readTransformation(char* f))[WORD_SIZE] {
     FILE *ft;
     static char transformation[NUM_WORDS][WORD_SIZE];
@@ -46,6 +50,37 @@ char (*readTransformation(char* f))[WORD_SIZE] {
 
 int main(int argc, char *argv[]) {
     char (*transformer)[WORD_SIZE] = readTransformation("cypher.txt"); // array with transformer words
+
+    int fd_parent[2], fd_child[2];
+
+    if (pipe(fd_child) < 0) {
+        perror("pipe error");
+        exit(EXIT_FAILURE);
+    }
+    if (pipe(fd_parent) < 0) {
+        perror("pipe error");
+        exit(EXIT_FAILURE);
+    }
+
+    if ((pid = fork()) < 0) {
+        perror("fork error");
+        exit(EXIT_FAILURE);
+    }
+    else if (pid > 0) {
+        close(fd_parent[READ_END]);
+        close(fd_child[WRITE_END]);
+        /* parent */
+
+
+        exit(0);
+    } else {
+        close(fd_parent[WRITE_END]);
+        close(fd_child[READ_END]);
+        /* child */
+
+
+        exit(0);
+    }
 
 
     return 0;
