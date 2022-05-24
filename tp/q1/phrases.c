@@ -58,7 +58,14 @@ int main(int argc, char *argv[]) {
 
         /** End of phrase */
         if (strchr(".!?", ch)) { // se encontrar ch na string ".!?"
-            fscanf(ft, "%c", &ch);
+            while (1) { // reticencias, varios pontos 
+                fscanf(ft, "%c", &ch);
+                if (!strchr(".!?", ch)) break;
+                else {
+                    phrases[phrase][j] = ch;
+                    j++;
+                }
+            }
             phrase++;
             j = 0;
         }
