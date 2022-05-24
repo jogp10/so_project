@@ -55,6 +55,7 @@ int main(int argc, char *argv[]) {
 
     int nbytes_parent, nbytes_child, fd_parent[2], fd_child[2];
     pid_t pid;
+    char line[LINESIZE];
 
     /** Create pipes*/
     if (pipe(fd_child) < 0) {
@@ -76,6 +77,7 @@ int main(int argc, char *argv[]) {
         close(fd_child[WRITE_END]);
         /* parent */
 
+        /* write to child */
         if ( (nbytes_parent = write(fd_parent[WRITE_END], "Hey!!", 5)) < 0) {
             fprintf(stderr, "Unable to write to pipe: %s\n", strerror(errno));
         }
@@ -86,11 +88,12 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "Cannot wait for child: %s\n", strerror(errno));
         }
 
-        char line[LINESIZE];
+        /* read from child */
         if ( (nbytes_parent = read(fd_child[READ_END], line, LINESIZE)) < 0) {
             fprintf(stderr, "Unable to read from pipe: %s\n", strerror(errno));
         }
         close(fd_child[READ_END]);
+
         printf("\n%s", line);
 
         exit(EXIT_SUCCESS);
@@ -100,17 +103,21 @@ int main(int argc, char *argv[]) {
         /* child */
 
         char line[LINESIZE];
+
+        /* read from parent */
         if ( (nbytes_parent = read(fd_parent[READ_END], line, LINESIZE)) < 0) {
             fprintf(stderr, "Unable to read from pipe: %s\n", strerror(errno));
         }
         close(fd_parent[READ_END]);
 
+        /* write to parent */
         if ( (nbytes_parent = write(fd_child[WRITE_END], "Hey parent!!", 12)) < 0) {
             fprintf(stderr, "Unable to write to pipe: %s\n", strerror(errno));
         }
         close(fd_child[WRITE_END]);
 
         printf("\n%s", line);
+        
         exit(EXIT_SUCCESS);
     }
 }
