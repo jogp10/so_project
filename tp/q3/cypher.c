@@ -117,7 +117,7 @@ int main(int argc, char *argv[]) {
         close(fd_child[WRITE_END]);
 
         printf("\n%s", line);
-        
+
         exit(EXIT_SUCCESS);
     }
 }
