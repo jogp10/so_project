@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include <sys/wait.h>
 
 #define NUM_WORDS 8
 #define WORD_SIZE 20
@@ -49,10 +51,12 @@ char (*readTransformation(char* f))[WORD_SIZE] {
 }
 
 int main(int argc, char *argv[]) {
-    char (*transformer)[WORD_SIZE] = readTransformation("cypher.txt"); // array with transformer words
+    char (*transformer)[WORD_SIZE] = readTransformation("cypher.txt"); /** array with transformer words */
 
-    int fd_parent[2], fd_child[2];
+    int nbytes_parent, nbytes_child, fd_parent[2], fd_child[2];
+    pid_t pid;
 
+    /** Create pipes*/
     if (pipe(fd_child) < 0) {
         perror("pipe error");
         exit(EXIT_FAILURE);
@@ -62,6 +66,7 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
+    /** Create child process */
     if ((pid = fork()) < 0) {
         perror("fork error");
         exit(EXIT_FAILURE);
@@ -71,17 +76,41 @@ int main(int argc, char *argv[]) {
         close(fd_child[WRITE_END]);
         /* parent */
 
+        if ( (nbytes_parent = write(fd_parent[WRITE_END], "Hey!!", 5)) < 0) {
+            fprintf(stderr, "Unable to write to pipe: %s\n", strerror(errno));
+        }
+        close(fd_parent[WRITE_END]);
 
-        exit(0);
+        /* wait for child and exit */
+        if ( waitpid(pid, NULL, 0) < 0) {
+            fprintf(stderr, "Cannot wait for child: %s\n", strerror(errno));
+        }
+
+        char line[LINESIZE];
+        if ( (nbytes_parent = read(fd_child[READ_END], line, LINESIZE)) < 0) {
+            fprintf(stderr, "Unable to read from pipe: %s\n", strerror(errno));
+        }
+        close(fd_child[READ_END]);
+        printf("\n%s", line);
+
+        exit(EXIT_SUCCESS);
     } else {
         close(fd_parent[WRITE_END]);
         close(fd_child[READ_END]);
         /* child */
 
+        char line[LINESIZE];
+        if ( (nbytes_parent = read(fd_parent[READ_END], line, LINESIZE)) < 0) {
+            fprintf(stderr, "Unable to read from pipe: %s\n", strerror(errno));
+        }
+        close(fd_parent[READ_END]);
 
-        exit(0);
+        if ( (nbytes_parent = write(fd_child[WRITE_END], "Hey parent!!", 12)) < 0) {
+            fprintf(stderr, "Unable to write to pipe: %s\n", strerror(errno));
+        }
+        close(fd_child[WRITE_END]);
+
+        printf("\n%s", line);
+        exit(EXIT_SUCCESS);
     }
-
-
-    return 0;
 }
