@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define PHRASE_SIZE 100 // tamanho da frase
-#define TEXT_SIZE 200 // no de frases
+#define PHRASE_SIZE 500 // tamanho da frase
+#define TEXT_SIZE 1000 // no de frases
 
 int main(int argc, char *argv[]) {
     enum {
@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
 
         /** End of phrase */
         if (strchr(".!?", ch)) { // se encontrar ch na string ".!?"
-            while (1) { // reticencias, varios pontos 
+            while (1) { // reticencias, varios pontos
                 fscanf(ft, "%c", &ch);
                 if (!strchr(".!?", ch)) break;
                 else {

@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
 
         while (1) {
             /* write to child */
-            if (write(fd_parent[WRITE_END], "good", 4) < 0) {
+            if (write(fd_parent[WRITE_END], "day", 5) < 0) {
                 fprintf(stderr, "Unable to write to pipe: %s\n", strerror(errno));
             }
             break;
@@ -117,8 +117,8 @@ int main(int argc, char *argv[]) {
 
             for (int i = 0; i < NUM_WORDS; i++) {
                 if (!strcmp(transformer[i], line)) {
-                    if (i % 2 == 0) i = i - 1;
-                    else i = i + 1;
+                    if (i % 2 == 0) i = i + 1;
+                    else i = i - 1;
                     strcpy(line, transformer[i]);
                 }
             }
