@@ -10,7 +10,7 @@
 
 #define READ_END 0
 #define WRITE_END 1
-#define LINESIZE 10000
+#define LINESIZE 10000 //não pode dar asneira?
 
 char (*readTransformation(char* f))[WORD_SIZE] {
     FILE *ft;
@@ -53,8 +53,9 @@ char (*readTransformation(char* f))[WORD_SIZE] {
 int main(int argc, char *argv[]) {
     int fd_parent[2], fd_child[2];
     pid_t pid;
-    char line[LINESIZE];
-
+    
+    char word[255]; //To store the words
+     
     /** Create pipes*/
     if (pipe(fd_child) < 0) {
         perror("pipe error");
@@ -74,14 +75,43 @@ int main(int argc, char *argv[]) {
         close(fd_child[WRITE_END]);
         /* parent */
 
+        
 
-        while (1) {
+        while (!feof(stdin)) {
+            scanf("%s",word);
+            fflush(stdin);
+            
+
+/*             char ch[1];
+            for(int i = 0; i < 255; i++){
+                scanf("%c",ch);
+                word[i] = ch[1];
+                if(strcmp(ch," ")){
+                    printf("%s",word);
+                    printf("\n1\n");
+                    break;
+                }else if(strcmp(ch,"\n")){
+                    printf("%s",word);
+                    printf("\n2\n");
+                    break;
+                }
+                fflush(stdin);
+            }
+            fflush(stdin); */
+
             /* write to child */
-            if (write(fd_parent[WRITE_END], "day", 5) < 0) {
+            if (write(fd_parent[WRITE_END], word, 255) < 0) {
                 fprintf(stderr, "Unable to write to pipe: %s\n", strerror(errno));
             }
-            break;
+            //printf("%s\n",word);
+
         }
+
+        if (write(fd_parent[WRITE_END], "\0", 255) < 0) {
+            fprintf(stderr, "Unable to write to pipe: %s\n", strerror(errno));
+        }
+
+
         close(fd_parent[WRITE_END]);
 
         /* wait for child and exit */
@@ -89,45 +119,57 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "Cannot wait for child: %s\n", strerror(errno));
         }
 
-
-        while (1) {
+        while (strcmp(word,"\0")) {
             /* read from child */
-            if (read(fd_child[READ_END], line, LINESIZE) < 0) {
+            if (read(fd_child[READ_END], word, 255) < 0) {
                 fprintf(stderr, "Unable to read from pipe: %s\n", strerror(errno));
             }
-            printf("\n%s", line);
-            break;
+            printf("%s ", word);
         }
+
+
+        for(int i = 0; i < 255; i++){
+            word[i] = '\0';
+        }
+
+        
         close(fd_child[READ_END]);
 
         exit(EXIT_SUCCESS);
     } else {
         close(fd_parent[WRITE_END]);
         close(fd_child[READ_END]);
-        /* child */
-        char line[LINESIZE];
+        /*-----------child-----------*/
+        char newToken[255];
 
         char (*transformer)[WORD_SIZE] = readTransformation("cypher.txt"); /** array with transformer words */
 
-        while (1) {
+        while(strcmp(newToken,"\0")){
+            for(int i = 0; i < 255; i++){
+                newToken[i] = '\0';
+            }
+
             /* read from parent */
-            if (read(fd_parent[READ_END], line, LINESIZE) < 0) {
+            if (read(fd_parent[READ_END], newToken, 255) < 0) {
                 fprintf(stderr, "Unable to read from pipe: %s\n", strerror(errno));
             }
 
+            printf("\nchild: %s", newToken);
+            
+
             for (int i = 0; i < NUM_WORDS; i++) {
-                if (!strcmp(transformer[i], line)) {
+                if (!strcmp(transformer[i], newToken)) {
                     if (i % 2 == 0) i = i + 1;
                     else i = i - 1;
-                    strcpy(line, transformer[i]);
+                    strcpy(newToken, transformer[i]);
                 }
-            }
+            } 
 
             /* write to parent */
-            if (write(fd_child[WRITE_END], line, strlen(line)) < 0) {
+            if (write(fd_child[WRITE_END], newToken, 255) < 0) {
                 fprintf(stderr, "Unable to write to pipe: %s\n", strerror(errno));
             }
-            break;
+
         }
 
         close(fd_parent[READ_END]);
