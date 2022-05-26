@@ -10,9 +10,9 @@
 
 #define READ_END 0
 #define WRITE_END 1
-#define LINESIZE 10000 //não pode dar asneira?
+#define PHRASESIZE 255 //não pode dar asneira?
 
-char (*readTransformation(char* f))[WORD_SIZE] {
+char (*readTransformation(const char* f))[WORD_SIZE] {
     FILE *ft;
     static char transformation[NUM_WORDS][WORD_SIZE];
 
@@ -50,12 +50,15 @@ char (*readTransformation(char* f))[WORD_SIZE] {
     return transformation;
 }
 
+int replace_str(char to_replace[], char replacer[], char phrase[]) {
+    return 0;
+}
+
 int main(int argc, char *argv[]) {
     int fd_parent[2], fd_child[2];
     pid_t pid;
-    
-    char word[255]; //To store the words
-     
+    int n_bytes;
+
     /** Create pipes*/
     if (pipe(fd_child) < 0) {
         perror("pipe error");
@@ -73,15 +76,10 @@ int main(int argc, char *argv[]) {
     } else if (pid > 0) {
         close(fd_parent[READ_END]);
         close(fd_child[WRITE_END]);
-        /* parent */
+        /** parent */
+        char phrase[PHRASESIZE]; //To store the words
 
-        
-
-        while (!feof(stdin)) {
-            scanf("%s",word);
-            fflush(stdin);
-            
-
+        while ( fgets(phrase, PHRASESIZE, stdin) != NULL ) {
 /*             char ch[1];
             for(int i = 0; i < 255; i++){
                 scanf("%c",ch);
@@ -98,80 +96,64 @@ int main(int argc, char *argv[]) {
                 fflush(stdin);
             }
             fflush(stdin); */
+            //fprintf(stderr, "write: %s\n", phrase);
 
-            /* write to child */
-            if (write(fd_parent[WRITE_END], word, 255) < 0) {
-                fprintf(stderr, "Unable to write to pipe: %s\n", strerror(errno));
+            /** write to child */
+            if (write(fd_parent[WRITE_END], phrase, strlen(phrase)) < 0) {
+                fprintf( stderr, "Unable to write to pipe: %s\n", strerror(errno));
             }
-            //printf("%s\n",word);
-
         }
-
-        if (write(fd_parent[WRITE_END], "\0", 255) < 0) {
-            fprintf(stderr, "Unable to write to pipe: %s\n", strerror(errno));
-        }
-
-
         close(fd_parent[WRITE_END]);
+
+        fprintf( stderr, "stop\n");
 
         /* wait for child and exit */
         if (waitpid(pid, NULL, 0) < 0) {
             fprintf(stderr, "Cannot wait for child: %s\n", strerror(errno));
         }
 
-        while (strcmp(word,"\0")) {
+        while (1) {
+            memset(phrase, 0, PHRASESIZE);
             /* read from child */
-            if (read(fd_child[READ_END], word, 255) < 0) {
+            if ( (n_bytes = read(fd_child[READ_END], phrase, PHRASESIZE)) < 0) {
                 fprintf(stderr, "Unable to read from pipe: %s\n", strerror(errno));
-            }
-            printf("%s ", word);
+                break;
+            } else if(n_bytes == 0) break;
+            printf("%s", phrase);
         }
-
-
-        for(int i = 0; i < 255; i++){
-            word[i] = '\0';
-        }
-
-        
         close(fd_child[READ_END]);
 
         exit(EXIT_SUCCESS);
     } else {
         close(fd_parent[WRITE_END]);
         close(fd_child[READ_END]);
-        /*-----------child-----------*/
-        char newToken[255];
+        /** child */
+        char newToken[PHRASESIZE];
 
         char (*transformer)[WORD_SIZE] = readTransformation("cypher.txt"); /** array with transformer words */
 
-        while(strcmp(newToken,"\0")){
-            for(int i = 0; i < 255; i++){
-                newToken[i] = '\0';
-            }
-
+        while(1) {
+            memset(newToken, 0, PHRASESIZE);
             /* read from parent */
-            if (read(fd_parent[READ_END], newToken, 255) < 0) {
+            if ((n_bytes = read(fd_parent[READ_END], newToken, PHRASESIZE)) < 0) {
                 fprintf(stderr, "Unable to read from pipe: %s\n", strerror(errno));
-            }
-
-            printf("\nchild: %s", newToken);
-            
+                break;
+            } else if(n_bytes == 0) break;
+            fprintf(stderr, "Read: %s\n", newToken);
 
             for (int i = 0; i < NUM_WORDS; i++) {
-                if (!strcmp(transformer[i], newToken)) {
-                    if (i % 2 == 0) i = i + 1;
-                    else i = i - 1;
-                    strcpy(newToken, transformer[i]);
-                }
-            } 
-
-            /* write to parent */
-            if (write(fd_child[WRITE_END], newToken, 255) < 0) {
-                fprintf(stderr, "Unable to write to pipe: %s\n", strerror(errno));
+                int new_i;
+                if (i%2==0) new_i = i + 1;
+                else new_i = i - 1;
+                replace_str(transformer[i], transformer[new_i], newToken);
             }
 
+            /* write to parent */
+            if ( write(fd_child[WRITE_END], newToken, strlen(newToken)) < 0) {
+                fprintf(stderr, "Unable to write to pipe: %s\n", strerror(errno));
+                break;
+            }
         }
-
         close(fd_parent[READ_END]);
         close(fd_child[WRITE_END]);
 
