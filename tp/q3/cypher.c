@@ -74,9 +74,10 @@ int main(int argc, char *argv[]) {
         perror("fork error");
         exit(EXIT_FAILURE);
     } else if (pid > 0) {
+        /** parent */
         close(fd_parent[READ_END]);
         close(fd_child[WRITE_END]);
-        /** parent */
+
         char phrase[PHRASESIZE]; //To store the words
 
         while ( fgets(phrase, PHRASESIZE, stdin) != NULL ) {
@@ -105,8 +106,6 @@ int main(int argc, char *argv[]) {
         }
         close(fd_parent[WRITE_END]);
 
-        fprintf( stderr, "stop\n");
-
         /* wait for child and exit */
         if (waitpid(pid, NULL, 0) < 0) {
             fprintf(stderr, "Cannot wait for child: %s\n", strerror(errno));
@@ -114,6 +113,7 @@ int main(int argc, char *argv[]) {
 
         while (1) {
             memset(phrase, 0, PHRASESIZE);
+
             /* read from child */
             if ( (n_bytes = read(fd_child[READ_END], phrase, PHRASESIZE)) < 0) {
                 fprintf(stderr, "Unable to read from pipe: %s\n", strerror(errno));
@@ -125,21 +125,22 @@ int main(int argc, char *argv[]) {
 
         exit(EXIT_SUCCESS);
     } else {
+        /** child */
         close(fd_parent[WRITE_END]);
         close(fd_child[READ_END]);
-        /** child */
+
         char newToken[PHRASESIZE];
 
         char (*transformer)[WORD_SIZE] = readTransformation("cypher.txt"); /** array with transformer words */
 
         while(1) {
             memset(newToken, 0, PHRASESIZE);
+
             /* read from parent */
             if ((n_bytes = read(fd_parent[READ_END], newToken, PHRASESIZE)) < 0) {
                 fprintf(stderr, "Unable to read from pipe: %s\n", strerror(errno));
                 break;
             } else if(n_bytes == 0) break;
-            fprintf(stderr, "Read: %s\n", newToken);
 
             for (int i = 0; i < NUM_WORDS; i++) {
                 int new_i;
