@@ -4,7 +4,7 @@
 #include <string.h>
 
 #define PHRASE_SIZE 500 // tamanho da frase
-#define TEXT_SIZE 1000 // no de frases
+#define NUM_PHRASES 1000 // no de frases
 
 int main(int argc, char *argv[]) {
     enum {
@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
     int opt;
 
     FILE *ft;
-    char phrases[TEXT_SIZE][PHRASE_SIZE];
+    char phrases[NUM_PHRASES][PHRASE_SIZE];
     int num_phrases;
 
     /** Iterate through arguments options */

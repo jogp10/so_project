@@ -5,7 +5,7 @@
 #include <errno.h>
 #include <sys/wait.h>
 
-#define NUM_WORDS 8
+#define NUM_WORDS 100
 #define WORD_SIZE 20
 
 #define READ_END 0
@@ -50,7 +50,7 @@ char (*readTransformation(const char* f))[WORD_SIZE] {
     return transformation;
 }
 
-int replace_str(char *word1, char *word2, char *target) {
+void replace_str(char *word1, char *word2, char *target) {
 
     char buffer[1024] = { 0 };
     char *insert_point = &buffer[0];
@@ -95,7 +95,6 @@ int replace_str(char *word1, char *word2, char *target) {
 
     /* write altered string back to target */
     strcpy(target, buffer);
-    return 0;
 }
 
 int main() {
@@ -166,7 +165,7 @@ int main() {
                 break;
             } else if(n_bytes == 0) break;
 
-            for (int i = 0; i < NUM_WORDS; i+=2) {
+            for (int i = 0; i < (int) sizeof(transformer); i+=2) {
                 replace_str(transformer[i], transformer[i + 1],  newToken); /* replace words in transformers */
             }
 
