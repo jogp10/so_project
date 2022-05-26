@@ -1,9 +1,9 @@
 all : cypher
 
-phrases : cypher.o
+cypher : cypher.o
 	gcc -Wall -Wextra -o cypher cypher.o
 
-phrases.o : cypher.c
+cypher.o : cypher.c
 	gcc -Wall -Wextra -c cypher.c
 
 clean :

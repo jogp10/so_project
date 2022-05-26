@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
 
     FILE *ft;
     char phrases[TEXT_SIZE][PHRASE_SIZE];
-    int num_phrases = 0;
+    int num_phrases;
 
     /** Iterate through arguments options */
     while ((opt = getopt(argc, argv, "l")) != -1) { // = -1 se l não existir  

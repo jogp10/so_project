@@ -50,11 +50,53 @@ char (*readTransformation(const char* f))[WORD_SIZE] {
     return transformation;
 }
 
-int replace_str(char to_replace[], char replacer[], char phrase[]) {
+int replace_str(char *word1, char *word2, char *target) {
+
+    char buffer[1024] = { 0 };
+    char *insert_point = &buffer[0];
+    const char *tmp = target;
+    char *replacement;
+    size_t needle_len, repl_len;
+    size_t word1_len = strlen(word1);
+    size_t word2_len = strlen(word2);
+
+    while (1) {
+        const char *p1 = strstr(tmp, word1);
+        const char *p2 = strstr(tmp, word2);
+        const char *p;
+
+        if ((p1 == NULL && p2 == NULL)) p = NULL;
+        else if (p2 == NULL) p = p1;
+        else if (p1 == NULL) p = p2;
+        else p = p1 > p2 ? p2 : p1;
+
+        // walked past last occurrence of needle; copy remaining part
+        if (p == NULL) {
+            strcpy(insert_point, tmp);
+            break;
+        }
+
+        if (p == p1) {needle_len = word1_len; repl_len = word2_len; replacement = word2;}
+        else {needle_len = word2_len; repl_len = word1_len; replacement = word1;}
+
+        // copy part before needle
+        memcpy(insert_point, tmp, p - tmp);
+        insert_point += p - tmp;
+
+        // copy replacement string
+        memcpy(insert_point, replacement, repl_len);
+        insert_point += repl_len;
+
+        // adjust pointers, move on
+        tmp = p + needle_len;
+    }
+
+    // write altered string back to target
+    strcpy(target, buffer);
     return 0;
 }
 
-int main(int argc, char *argv[]) {
+int main() {
     int fd_parent[2], fd_child[2];
     pid_t pid;
     int n_bytes;
@@ -81,24 +123,6 @@ int main(int argc, char *argv[]) {
         char phrase[PHRASESIZE]; //To store the words
 
         while ( fgets(phrase, PHRASESIZE, stdin) != NULL ) {
-/*             char ch[1];
-            for(int i = 0; i < 255; i++){
-                scanf("%c",ch);
-                word[i] = ch[1];
-                if(strcmp(ch," ")){
-                    printf("%s",word);
-                    printf("\n1\n");
-                    break;
-                }else if(strcmp(ch,"\n")){
-                    printf("%s",word);
-                    printf("\n2\n");
-                    break;
-                }
-                fflush(stdin);
-            }
-            fflush(stdin); */
-            //fprintf(stderr, "write: %s\n", phrase);
-
             /** write to child */
             if (write(fd_parent[WRITE_END], phrase, strlen(phrase)) < 0) {
                 fprintf( stderr, "Unable to write to pipe: %s\n", strerror(errno));
@@ -142,11 +166,8 @@ int main(int argc, char *argv[]) {
                 break;
             } else if(n_bytes == 0) break;
 
-            for (int i = 0; i < NUM_WORDS; i++) {
-                int new_i;
-                if (i%2==0) new_i = i + 1;
-                else new_i = i - 1;
-                replace_str(transformer[i], transformer[new_i], newToken);
+            for (int i = 0; i < NUM_WORDS; i+=2) {
+                replace_str(transformer[i], transformer[i + 1],  newToken);
             }
 
             /* write to parent */
