@@ -6,7 +6,7 @@
 #include <sys/wait.h>
 
 #define NUM_WORDS 100
-#define WORD_SIZE 20
+#define WORD_SIZE 30
 
 #define READ_END 0
 #define WRITE_END 1

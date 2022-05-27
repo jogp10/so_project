@@ -3,12 +3,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define PHRASE_SIZE 500 // tamanho da frase
-#define NUM_PHRASES 1000 // no de frases
+#define PHRASE_SIZE 500 
+#define NUM_PHRASES 1000
 
 int main(int argc, char *argv[]) {
     enum {
-        COUNT_MODE, LINE_MODE // no de frases; print frase por frase com índice
+        COUNT_MODE, LINE_MODE
     } mode = COUNT_MODE;
     int opt;
 
@@ -17,10 +17,10 @@ int main(int argc, char *argv[]) {
     int num_phrases;
 
     /** Iterate through arguments options */
-    while ((opt = getopt(argc, argv, "l")) != -1) { // = -1 se l não existir  
+    while ((opt = getopt(argc, argv, "l")) != -1) {  
         switch (opt) {
             case 'l':
-                puts("Activate Print Lines Mode"); // l de lines
+                puts("Activate Print Lines Mode");
                 mode = LINE_MODE;
                 break;
             default:
@@ -30,35 +30,35 @@ int main(int argc, char *argv[]) {
     }
 
     /** Open file */
-    int index = optind; // optind, resultante do getopt, é igual ao índice do próximo argumento a ser iterado
+    int index = optind; // índice do próximo argumento a ser iterado
     char *f = (char *) malloc(100 * sizeof(char));
-    strcpy(f, argv[index]); // string copy de argv[index] (só o nome do ficheiro) para f
-    if ((ft = fopen(f, "r")) == NULL) { // se der erro; fopen retorna apontador para f; ft = apontador para início do ficheiro f
-        puts(f); // puts faz sempre tab
+    strcpy(f, argv[index]); // copies file name to f
+    if ((ft = fopen(f, "r")) == NULL) {
+        puts(f); 
         puts("Unable to open file");
         return 1;
     }
 
     /** Get size of file */
     int sz;
-    fseek(ft, 0, SEEK_END); // muda o apontador ft para o final do ficheiro (SEEK_END); 0  -> offset
-    sz = ftell(ft); // posição do apontador (índice do final do ficheiro = tamanho do ficheiro)
-    rewind(ft); // voltar ao início do ficheiro
+    fseek(ft, 0, SEEK_END);
+    sz = ftell(ft); 
+    rewind(ft); 
 
 
     int phrase = 0;
     int j = 0; /* position in phrase */
     for (int i = 0; i < sz; i++) { /** Iterate through all file */
         char ch;
-        fscanf(ft, "%c", &ch); // LER um caracter a cada iteração; ft ficheiro, "%c" tipo que vou ler, &ch onde vou guardar o que li
+        fscanf(ft, "%c", &ch); 
 
         if (ch == '\n') ch = ' '; /* substitute new line for space */
         phrases[phrase][j] = ch; 
         j++;
 
         /** End of phrase */
-        if (strchr(".!?", ch)) { // se encontrar ch na string ".!?"
-            while (1) { // reticencias, varios pontos
+        if (strchr(".!?", ch)) { 
+            while (1) { // se tiver mais que um ponto seguido (reticências, !!)
                 fscanf(ft, "%c", &ch);
                 if (!strchr(".!?", ch)) break;
                 else {
@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
             }
             break;
         case COUNT_MODE:
-            printf("%d\n", num_phrases); // d de dígito
+            printf("%d\n", num_phrases);
             break;
     }
 
