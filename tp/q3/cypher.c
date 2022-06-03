@@ -62,7 +62,7 @@ void replace_str(char *word1, char *word2, char *target) {
 
     while (1) {
         /** Pointers to first occurrence of words */
-        const char *p1 = strstr(tmp, word1);
+        const char *p1 = strstr(tmp, word1);	
         const char *p2 = strstr(tmp, word2);
         const char *p;
 
